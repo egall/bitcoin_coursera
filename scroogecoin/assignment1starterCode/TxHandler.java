@@ -33,33 +33,49 @@ public class TxHandler {
         double inputSum = 0;
         double outputSum = 0;
 
+        UTXOPool spentPool = new UTXOPool();
+        ArrayList<UTXO> spentList;
+
         numIn = tx.numInputs();
         numOut = tx.numOutputs();
 
         Transaction.Input in;
         Transaction.Output out;
 
-        System.out.println("Num in = " + numIn + " numout = " + numOut);
-
         // If either Input or Output list is empty transaction is invalid
         if (numIn <= 0 || numOut <= 0) return false;
 
+        /* Run through all outputs keep track of total value */
         for (itor = 0; itor < numOut; itor++) { 
             out = tx.getOutput(itor);
             outVal = out.value;
-            System.out.println("Currval = " + outVal);
+            // Rule #4
             if (outVal < 0) return false;
             outputSum += outVal;
         }
-        System.out.println("output sum = " + outputSum);
 
-
+        /* Run through all inputs */
         for(itor = 0; itor < numIn; itor++){
             in = tx.getInput(itor);
+            /* Get input from UTXO pool */
             UTXO ut = new UTXO(in.prevTxHash, in.outputIndex);
             Transaction.Output inUt = txhUtxoPool.getTxOutput(ut);
-            System.out.println("input val = " + inUt.value);
+
+            // Rule #1
+            if (inUt == null) return false;
+            inputSum += inUt.value;
+            
+            // Rule #2
+            if (!Crypto.verifySignature (inUt.address, tx.getRawDataToSign(itor), in.signature) ) return false;
+
+            // Adding spent utxos to remove later Rule #3
+            if (spentPool.contains(ut)) return false;
+            spentPool.addUTXO(ut, inUt);
+
         } 
+        // Rule #5
+        if (inputSum < outputSum) return false;
+
         return true;
     }
 
