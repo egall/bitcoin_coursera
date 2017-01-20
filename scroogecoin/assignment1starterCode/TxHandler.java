@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.Arrays;
 public class TxHandler {
 
     /**
@@ -5,8 +7,12 @@ public class TxHandler {
      * {@code utxoPool}. This should make a copy of utxoPool by using the UTXOPool(UTXOPool uPool)
      * constructor.
      */
+    private UTXOPool utxoPoolTxH;
     public TxHandler(UTXOPool utxoPool) {
         // IMPLEMENT THIS
+        utxoPoolTxH = new UTXOPool(utxoPool);
+        utxoPool.getAllUTXO();
+        System.out.println("In TxHandler");
     }
 
     /**
@@ -19,7 +25,36 @@ public class TxHandler {
      *     values; and false otherwise.
      */
     public boolean isValidTx(Transaction tx) {
-        // IMPLEMENT THIS
+        int itor;
+        double outVal;
+        int numIn = 0;
+        int numOut = 0;
+
+        double inputSum = 0;
+        double outputSum = 0;
+
+        numIn = tx.numInputs();
+        numOut = tx.numOutputs();
+
+        System.out.println("Num in = " + numIn + " numout = " + numOut);
+
+        // If either Input or Output list is empty transaction is invalid
+        if (numIn <= 0 || numOut <= 0) return false;
+
+        for (itor = 0; itor < numOut; itor++) { 
+            outVal = tx.getOutput(itor).value;
+            System.out.println("Currval = " + outVal);
+            if (outVal < 0) return false;
+            outputSum += outVal;
+        }
+        System.out.println("output sum = " + outputSum);
+
+
+        for(itor = 0; itor < numIn; itor++){
+            System.out.println("itor = " + itor);
+            //UTXO ut = new UTXO(tx.getInputs(itor), 
+        } 
+        return true;
     }
 
     /**
@@ -29,6 +64,9 @@ public class TxHandler {
      */
     public Transaction[] handleTxs(Transaction[] possibleTxs) {
         // IMPLEMENT THIS
+        Transaction[] t = new Transaction[16];
+        System.out.println("In handleTxs");
+        return t;
     }
 
 }
