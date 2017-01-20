@@ -57,7 +57,7 @@ public class TxHandler {
         /* Run through all inputs */
         for(itor = 0; itor < numIn; itor++){
             in = tx.getInput(itor);
-            /* Get input from UTXO pool */
+            /* Our input is a former output which is stored in the UTXOPool, get input from UTXO pool */
             UTXO ut = new UTXO(in.prevTxHash, in.outputIndex);
             Transaction.Output inUt = txhUtxoPool.getTxOutput(ut);
 
@@ -68,7 +68,7 @@ public class TxHandler {
             // Rule #2
             if (!Crypto.verifySignature (inUt.address, tx.getRawDataToSign(itor), in.signature) ) return false;
 
-            // Adding spent utxos to remove later Rule #3
+            // Rule #3
             if (spentPool.contains(ut)) return false;
             spentPool.addUTXO(ut, inUt);
 
@@ -85,10 +85,28 @@ public class TxHandler {
      * updating the current UTXO pool as appropriate.
      */
     public Transaction[] handleTxs(Transaction[] possibleTxs) {
-        // IMPLEMENT THIS
-        Transaction[] t = new Transaction[16];
+        ArrayList<Transaction> txBlock = new ArrayList();
+
+        for (Transaction tx : possibleTxs) {
+            if (!txBlock.contains(tx)) {
+                if (isValidTx(tx) ) {
+                    for (Transaction.Input in : tx.getInputs() ) {
+                        UTXO ut = new UTXO(in.prevTxHash, in.outputIndex);
+                        txhUtxoPool.removeUTXO(ut);
+                    }
+                    int idx = 0;
+                    for (Transaction.Output out : tx.getOutputs() ) {
+                         UTXO ut = new UTXO(tx.getHash(), idx++);
+                         txhUtxoPool.addUTXO(ut, out);
+                    }
+                    txBlock.add(tx);
+                }
+            } 
+        } 
         System.out.println("In handleTxs");
-        return t;
+        Transaction[] transactionBlk = txBlock.toArray(new Transaction[txBlock.size()]);
+        //return txBlock.toArray(new Transaction[txBlock.size()]);
+        return transactionBlk;
     }
 
 }
